@@ -95,7 +95,7 @@
     <section id="screen-scan" class="screen active">
       <div class="card">
         <h2 style="margin-top:0">Bons erfassen</h2>
-        <input type="file" id="imgInp" accept="image/*,application/pdf" multiple style="display:none">
+        <input type="file" id="imgInp" accept=".jpg,.jpeg,.png,.pdf,image/*,application/pdf" multiple style="display:none">
         <label for="imgInp" class="file-label">📸 BON WÄHLEN (BILD / PDF)</label>
         <div id="scan-progress-container">
             <div id="status" style="font-size:0.85rem; margin-bottom:6px; text-align:center; font-weight:600; line-height: 1.4;">
@@ -200,7 +200,7 @@ let tokenClient, gapiInited = false, gisInited = false;
 // DATEI-VERARBEITUNG MIT DETAILS
 async function processFile(file, updateDetail) {
     let imageSrc = "";
-    if (file.type === "application/pdf") {
+    if (file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")) {
         updateDetail("PDF wird in Bild umgewandelt...");
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
@@ -277,7 +277,7 @@ document.getElementById('imgInp').onchange = async (e) => {
     setTimeout(() => { progCont.style.display = "none"; }, 4000);
 };
 
-// --- AB HIER: ALLE BESTEHENDEN FUNKTIONEN (CLOUD, RENDER, THEMES) ---
+// --- RESTLICHE FUNKTIONEN (IDENTISCH) ---
 function gapiLoaded() { gapi.load('client', async () => { await gapi.client.init({ discoveryDocs: [DISCOVERY_DOC] }); gapiInited = true; checkAuthAuto(); }); }
 function gisLoaded() { tokenClient = google.accounts.oauth2.initTokenClient({ client_id: CLIENT_ID, scope: SCOPES, callback: async (resp) => { localStorage.setItem('google_token', resp.access_token); gapi.client.setToken({access_token: resp.access_token}); await checkAuthAuto(); } }); gisInited = true; }
 async function checkAuthAuto() { const token = localStorage.getItem('google_token'); if (token && gapiInited) { gapi.client.setToken({access_token: token}); try { const userRes = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', { headers: { 'Authorization': `Bearer ${token}` } }); const userData = await userRes.json(); document.getElementById('userName').textContent = userData.name || "Benutzer"; document.getElementById('googleLoginBtn').style.display = 'none'; document.getElementById('userBanner').style.display = 'block'; document.getElementById('sync-info').textContent = "✅ CLOUD AKTIV"; await syncWithCloud('download'); } catch (e) { logout(); } } }
